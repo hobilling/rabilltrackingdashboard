@@ -1,0 +1,40 @@
+                  onClick={() => context.cancelFetch?.()}
+                      onClick={() => {
+                    onClick={(e) => {
+                        onClick={(e) => e.stopPropagation()}
+                            onClick={() => setShowVisualConfigInline(!showVisualConfigInline)}
+                            onClick={() => setShowSheetMaintenanceInline(!showSheetMaintenanceInline)}
+                                      onClick={() => runSheetCleaning('combined')}
+                                            onClick={() => setCleaningConfirmTarget(null)}
+                                            onClick={() => {
+                                                onClick={() => setCleaningStatusMessage(null)}
+                                              onClick={() => setShowLogDetails(!showLogDetails)}
+                                      onClick={startMakeHistoryWizard}
+                                          onClick={() => setHistoryArchiveErrorMsg(null)} 
+              onClick={() => onPageChange('insights')}
+                          onClick={() => context?.onResetPivot?.()}
+                 onClick={() => {
+                      onClick={() => {
+                      onClick={() => {
+                           onClick={() => setSiteSearch('')} 
+                         <button onClick={() => {
+                         <button onClick={() => {
+                         <button onClick={() => {
+                         <button onClick={() => {
+                    onClick={() => {
+                    onClick={() => {
+                onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+              onClick={() => context?.refreshData()}
+              onClick={() => window.print()}
+                onClick={() => context?.onResetPivot?.()}
+                      onClick={f.clear}
+                onClick={handleClearAllFilters}
+            onClick={(e) => e.stopPropagation()}
+                        onClick={() => setShowHistoryWizard(false)}
+                          onClick={() => dateInputRef.current?.showPicker()}
+                            onClick={() => setHistoryWizardTab(tab.key as any)}
+                          <button onClick={() => setArchiveResultMsg(null)} className="text-[10px] text-gray-400 hover:text-gray-600 bg-transparent border-0 cursor-pointer p-0.5">✕</button>
+                        onClick={handleNextProjectOrFinish}
+                        onClick={executeArchiveForCurrentProject}
+function NavItem({ icon, label, active, onClick, collapsed }: { icon: React.ReactNode, label: string, active: boolean, onClick: () => void, collapsed: boolean }) {
+      onClick={onClick}

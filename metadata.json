@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Invoice Tracking Dashboard",
+  "description": "A 1:1 replication of the Invoice Tracking Power BI report, integrating Google Sheets data with real-time transformations and DAX-equivalent measures.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

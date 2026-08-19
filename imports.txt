@@ -1,0 +1,14 @@
+1:import React, { useState, useRef } from 'react';
+2:import { LayoutDashboard, BarChart3, PieChart, FileText, RefreshCw, Menu, ChevronLeft, ChevronRight, Search, FilterX, Filter, CheckSquare, Square, X, ChevronDown, ChevronUp, Loader2, ExternalLink, FileSpreadsheet, Printer, RotateCcw, Settings, Calendar, Archive, CheckCircle2, AlertCircle } from 'lucide-react';
+3:import { Button, buttonVariants } from '@/components/ui/button';
+4:import { Separator } from '@/components/ui/separator';
+5:import { AppContext } from '../App';
+6:import { motion, AnimatePresence } from 'motion/react';
+7:import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+8:import { cn } from '@/lib/utils';
+9:import { FilterPanel } from './FilterPanel';
+10:import { Input } from '@/components/ui/input';
+11:import { Label } from '@/components/ui/label';
+12:import InteractiveScorecards from './dashboard/InteractiveScorecards';
+13:import { format, isValid } from 'date-fns';
+14:import { 

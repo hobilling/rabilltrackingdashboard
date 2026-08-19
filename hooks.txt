@@ -1,0 +1,57 @@
+2:import React, { useState, useMemo, useEffect, useContext, useCallback } from "react";
+535:  const context = useContext(AppContext);
+536:  const [isExportOpen1, setIsExportOpen1] = useState(false);
+537:  const [isExportOpen2, setIsExportOpen2] = useState(false);
+540:  const [selectedDetailRecords, setSelectedDetailRecords] = useState<any[] | null>(null);
+541:  const [detailTitle, setDetailTitle] = useState<string>("");
+546:  const [selectedExtraColumns, setSelectedExtraColumns] = useState<string[]>(
+549:  const [selectedSummaries, setSelectedSummaries] = useState<string[]>([
+555:  const [selectedAvg, setSelectedAvg] = useState<string[]>([
+562:  const [selectedRows, setSelectedRows] = useState<string[]>(defaultRows);
+563:  const [columnizeBy, setColumnizeBy] = useState<string | null>(null);
+564:  const [chartType, setChartType] = useState("bar");
+565:  const [chartMetric, setChartMetric] = useState("count");
+568:  const [tempSelectedExtraColumns, setTempSelectedExtraColumns] = useState<string[]>(
+571:  const [tempSelectedSummaries, setTempSelectedSummaries] = useState<string[]>([
+577:  const [tempSelectedAvg, setTempSelectedAvg] = useState<string[]>([
+584:  const [tempSelectedRows, setTempSelectedRows] = useState<string[]>(defaultRows);
+585:  const [tempColumnizeBy, setTempColumnizeBy] = useState<string | null>(null);
+586:  const [tempChartType, setTempChartType] = useState("bar");
+587:  const [tempChartMetric, setTempChartMetric] = useState("count");
+590:  const [pivotItemsOrder, setPivotItemsOrder] = useState<string[]>(() => [
+604:  const [draggedItemIdx, setDraggedItemIdx] = useState<number | null>(null);
+607:  useEffect(() => {
+692:  const [openPopover, setOpenPopover] = useState<string | null>(null);
+693:  const [columnByOpen, setColumnByOpen] = useState(false);
+694:  const [chartTypeOpen, setChartTypeOpen] = useState(false);
+695:  const [chartVisTypeOpen, setChartVisTypeOpen] = useState(false);
+696:  const [chartMetricOpen, setChartMetricOpen] = useState(false);
+697:  const [collapsedCols, setCollapsedCols] = useState<Record<string, boolean>>({});
+700:  const [showDays, setShowDays] = useState(true);
+701:  const [showCount, setShowCount] = useState(true);
+702:  const [showAmount, setShowAmount] = useState(true);
+705:  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>(
+708:  const [expansionLevel, setExpansionLevel] = useState(10); // Default to expanded all (assuming depth < 5)
+711:  const [drillPath, setDrillPath] = useState<string[]>([]);
+712:  const [hiddenMetrics, setHiddenMetrics] = useState<string[]>([]);
+713:  const [hiddenCategories, setHiddenCategories] = useState<string[]>([]);
+716:  const [tableHeight, setTableHeight] = useState(tableFirst ? 562 : 450);
+718:  useEffect(() => {
+723:  const [isChartLoading, setIsChartLoading] = useState(false);
+724:  const [isResetting, setIsResetting] = useState(false);
+725:  const resetTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+728:  useEffect(() => {
+796:  const handleResetAll = useCallback(() => {
+841:  useEffect(() => {
+853:  useEffect(() => {
+860:  const allSelectedMetrics = useMemo(() => {
+873:  useEffect(() => {
+938:  useEffect(() => {
+979:  const computedColumnField = useMemo(() => {
+988:  const rowsToUse = useMemo(() => {
+999:  const processedData = useMemo(() => {
+1186:  useEffect(() => {
+4459:  const context = useContext(AppContext);
+4460:  const [activeTab, setActiveTab] = useState(0);
+4463:  const [width, setWidth] = useState(850);
+4464:  const [position, setPosition] = useState({ x: 0, y: 0 });
