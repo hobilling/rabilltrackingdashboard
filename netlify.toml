@@ -1,0 +1,26 @@
+[build]
+  command = "npm run build"
+  functions = "netlify/functions"
+  publish = "dist"
+
+[env.production]
+  GEMINI_API_KEY = ""
+  GOOGLE_SERVICE_ACCOUNT_EMAIL = ""
+  GOOGLE_PRIVATE_KEY = ""
+  GOOGLE_CLIENT_ID = ""
+  GOOGLE_CLIENT_SECRET = ""
+  APP_URL = "https://rabilltrackingdashboardinfo.netlify.app"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/server:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
