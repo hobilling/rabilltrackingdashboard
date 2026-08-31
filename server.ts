@@ -9,14 +9,16 @@ import * as dotenv from "dotenv";
 import { SheetCleanupService } from "./src/services/sheetCleanupService";
 import cookieParser from "cookie-parser";
 
+// Load environment variables - prioritize process.env which is set by Netlify
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use((req, res, next) => {
@@ -35,6 +37,24 @@ declare global {
 const CACHE_TTL = 60 * 60 * 1000; // 60 minutes cache
 const STALE_THRESHOLD = 24 * 60 * 60 * 1000; // 24 hours stale limit
 
+// Debug environment variables on startup
+const debugEnv = () => {
+    const hasEmail = !!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const hasKey = !!process.env.GOOGLE_PRIVATE_KEY;
+    const hasClientId = !!process.env.GOOGLE_CLIENT_ID;
+    const hasClientSecret = !!process.env.GOOGLE_CLIENT_SECRET;
+    const appUrl = process.env.APP_URL;
+
+    console.log(`[Server] Environment Check:`);
+    console.log(`  - GOOGLE_SERVICE_ACCOUNT_EMAIL: ${hasEmail ? '✓ Set' : '✗ Missing'}`);
+    console.log(`  - GOOGLE_PRIVATE_KEY: ${hasKey ? '✓ Set' : '✗ Missing'}`);
+    console.log(`  - GOOGLE_CLIENT_ID: ${hasClientId ? '✓ Set' : '✗ Missing'}`);
+    console.log(`  - GOOGLE_CLIENT_SECRET: ${hasClientSecret ? '✓ Set' : '✗ Missing'}`);
+    console.log(`  - APP_URL: ${appUrl || '✗ Missing (using default)'}`);
+};
+
+debugEnv();
+
 // Google OAuth Configuration
 const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
@@ -47,28 +67,39 @@ const requireAuth = (req: any, res: any, next: any) => {
     if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
         return next();
     }
+    console.warn(`[Auth] Service Account not configured. Email: ${!!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL}, Key: ${!!process.env.GOOGLE_PRIVATE_KEY}`);
     res.status(401).json({ error: "Service Account not configured" });
 };
 
 async function startServer() {
     // API: Connectivity Check
     app.get("/api/health", (req, res) => {
+        const hasSA = !!(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY);
+        console.log(`[Health] Service Account Status: ${hasSA ? 'OK' : 'MISSING'}`);
+        
         res.json({ 
             ok: true, 
-            serviceAccount: !!(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY),
+            serviceAccount: hasSA,
             envAppUrl: process.env.APP_URL || null,
-            configuredRedirectUri: `${process.env.APP_URL || 'http://localhost:3000'}/api/auth/callback`
+            configuredRedirectUri: `${process.env.APP_URL || 'http://localhost:3000'}/api/auth/callback`,
+            environment: process.env.NODE_ENV || 'development',
+            timestamp: new Date().toISOString()
         });
     });
 
     // --- Google OAuth Routes ---
     app.get("/api/auth/url", (req, res) => {
-        const url = oauth2Client.generateAuthUrl({
-            access_type: 'offline',
-            scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'],
-            prompt: 'select_account'
-        });
-        res.json({ url });
+        try {
+            const url = oauth2Client.generateAuthUrl({
+                access_type: 'offline',
+                scope: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'],
+                prompt: 'select_account'
+            });
+            res.json({ url });
+        } catch (error: any) {
+            console.error("[Auth URL] Error:", error);
+            res.status(500).json({ error: "Failed to generate auth URL" });
+        }
     });
 
     app.get("/api/auth/callback", async (req, res) => {
@@ -161,8 +192,11 @@ async function startServer() {
             const forceRefresh = req.query.refresh === 'true';
             const now = Date.now();
             
+            console.log(`[Metadata] Request - forceRefresh: ${forceRefresh}, cached: ${!!_cachedProjectsMetadata}`);
+            
             // If not forcing refresh, or if we have a cache younger than 1 hour, try to return it
             if (!forceRefresh && _cachedProjectsMetadata && now - _cachedProjectsMetadataTime < 1000 * 60 * 60) {
+                console.log(`[Metadata] Returning cached metadata (${_cachedProjectsMetadata.length} sites)`);
                 // Dynamically update sheetStats from the latest data fetch before returning cache
                 const updatedCache = _cachedProjectsMetadata.map((site: any) => {
                     const sheetStats = site.sheetStats?.map((stat: any) => {
@@ -182,12 +216,15 @@ async function startServer() {
             const authClient = GoogleAuthService.getServiceAccountAuth();
 
             if (!authClient) {
+                console.error(`[Metadata] Service Account auth failed`);
                 return res.status(401).json({ error: "Unauthorized - Service Account not configured" });
             }
 
             const sheetsAuth = google.sheets({ version: 'v4', auth: authClient });
             
+            console.log(`[Metadata] Discovering sites from Google Drive...`);
             const discoveredSites = await SiteDiscoveryService.discoverSites(forceRefresh);
+            console.log(`[Metadata] Found ${discoveredSites.length} sites`);
             
             const results = await Promise.all(discoveredSites.map(async (site, idx) => {
                 try {
@@ -197,7 +234,7 @@ async function startServer() {
                     // 1. Try structure cache
                     if (DataTransformationService.spreadsheetCache[cacheKey]) {
                         sheets = DataTransformationService.spreadsheetCache[cacheKey].sheets;
-                        console.log(`[Metadata API] Using structure cache for: ${site.spreadsheetId}`);
+                        console.log(`[Metadata] Using structure cache for: ${site.spreadsheetId}`);
                     } else {
                         // Stagger calls slightly to avoid burst hits on boot
                         await new Promise(resolve => setTimeout(resolve, idx * 100));
@@ -209,7 +246,7 @@ async function startServer() {
                             sheets,
                             timestamp: Date.now()
                         };
-                        console.log(`[Metadata API] Loaded live structure for: ${site.spreadsheetId}`);
+                        console.log(`[Metadata] Loaded live structure for: ${site.spreadsheetId}`);
                     }
                     
                     const typesToMatch = ['Invoice', 'History'];
@@ -265,6 +302,7 @@ async function startServer() {
             
             _cachedProjectsMetadata = results;
             _cachedProjectsMetadataTime = Date.now();
+            console.log(`[Metadata] Returning ${results.length} sites`);
             res.json(results);
         } catch (e: any) {
             console.error("api/projects/metadata Error:", e);
@@ -301,6 +339,7 @@ async function startServer() {
         const dataCache = global.dataCaches[cacheKey];
 
         if (dataCache && !forceRefresh && (now - dataCache.timestamp < CACHE_TTL)) {
+            console.log(`[Data] Returning cached data (${dataCache.data.length} records)`);
             return res.json(dataCache.data);
         }
 
@@ -324,6 +363,7 @@ async function startServer() {
 
             const data = await DataTransformationService.fetchAndTransformAll(authClient, selections, forceRefresh);
             
+            console.log(`[Data] Fetch complete: ${data.length} records`);
             // Validate data before caching
             if (data && data.length > 0) {
                 global.dataCaches[cacheKey] = { data, timestamp: Date.now() };
@@ -457,9 +497,21 @@ async function startServer() {
         });
     }
 
-    app.listen(PORT, "0.0.0.0", () => {
-        console.log(`Server running on http://localhost:${PORT}`);
+    const server = app.listen(PORT, "0.0.0.0", () => {
+        console.log(`[Server] Running on port ${PORT} - NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+    });
+
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+        console.log('[Server] SIGTERM received, shutting down gracefully');
+        server.close(() => {
+            console.log('[Server] Server closed');
+            process.exit(0);
+        });
     });
 }
 
-startServer();
+startServer().catch(err => {
+    console.error('[Server] Fatal error:', err);
+    process.exit(1);
+});
